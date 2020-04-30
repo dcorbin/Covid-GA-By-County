@@ -1,0 +1,31 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    domain_name (0.5.20190701)
+      unf (>= 0.0.5, < 1.0.0)
+    http-client (0.6.1)
+      http-cookie (~> 1.0, >= 1.0)
+      mime-types (~> 3.0, >= 3.0)
+    http-cookie (1.0.3)
+      domain_name (~> 0.5)
+    mime-types (3.3.1)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2020.0425)
+    mini_portile2 (2.4.0)
+    nokogiri (1.10.9)
+      mini_portile2 (~> 2.4.0)
+    unf (0.1.4)
+      unf_ext
+    unf_ext (0.0.7.7)
+    values (1.8.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  http-client
+  nokogiri
+  values
+
+BUNDLED WITH
+   1.17.2
