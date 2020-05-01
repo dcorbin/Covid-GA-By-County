@@ -41,7 +41,7 @@ end
 
 session_timestamp = Time.now.localtime
 
-filename = Pathname(ENV['DATA_DIR'] || "./data") + session_timestamp.strftime("%Y%m%d.json")
+filename = Pathname(ENV['DATA_DIR'] || "./data") + session_timestamp.strftime("by-date/%Y-%m-%d.json")
 data = CountyDataFetcher.new.fetch
 File.open(filename, "w") {|file| file.puts JSON.pretty_generate(data)}
 $stderr.puts "%d records" % [ data.size ]
