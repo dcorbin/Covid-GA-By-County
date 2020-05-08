@@ -9,4 +9,4 @@ export DATA_DIR="${DIR}/production-data"
 
 export PATH=${PATH}:/usr/local/bin
 /usr/local/var/rbenv/shims/ruby fetch.rb
-/usr/local/var/rbenv/shims/ruby post_fetch_processor.rb
+/usr/local/var/rbenv/shims/ruby -I ${DIR}/lib post_fetch_processor.rb

@@ -1,6 +1,8 @@
 require 'values'
 require 'json'
 require 'date'
+require 'pathname'
+require 'daily_county_record'
 
 FetchedRecord = Value.new(:county, :positives, :deaths, :hospitalizations, :positives_per_100k)
 class FetchedRecord
@@ -18,12 +20,12 @@ class FetchedRecord
   end
 end
 
-DailyRecord = Value.new(:positives, :deaths, :hospitalizations, :positives_per_100k,
-                        :new_positives, :new_deaths, :new_hospitalizations)
 
-class DailyRecord
-  def self.from_fetched_records(fetched_record, prior_fetched_record)
-    DailyRecord.new(
+class DailyCountyRecord
+  def self.from_fetched_records(fetched_record, date, prior_fetched_record)
+    DailyCountyRecord.new(
+        fetched_record.county,
+        date,
         fetched_record.positives,
         fetched_record.deaths,
         fetched_record.hospitalizations,
@@ -31,9 +33,6 @@ class DailyRecord
         fetched_record.positives - prior_fetched_record.positives,
         fetched_record.deaths - prior_fetched_record.deaths,
         fetched_record.hospitalizations - prior_fetched_record.hospitalizations)
-  end
-  def to_json(*args)
-    to_h.to_json(*args)
   end
 end
 
@@ -55,29 +54,22 @@ class Datastore
   end
 end
 
-def index_data_by_county_then_date(fetched_data_by_date)
-  counties = fetched_data_by_date.values.first.collect { |x| x.county }
-  dated_data_by_county = {}
-  counties.each {|county| dated_data_by_county[county] = {}}
-  fetched_data_by_date.each_pair do |date, fetched_records|
+def build_table(fetched_data_by_date)
+
+  fetched_data_by_date.keys.sort[1..-1].collect do |date|
     prior_date = date - 1
-    fetched_records.each {|record|
-      prior_record = if fetched_data_by_date.has_key?(prior_date)
-                       prior_data = fetched_data_by_date[prior_date]
-                       prior_data.find {|r| r.county == record.county}
-                     else
-                       FetchedRecord.new(record.county, 0, 0, 0, 0.0)
-                     end
-      dated_data_by_county[record.county][date] = DailyRecord.from_fetched_records(record, prior_record)
+    fetched_records = fetched_data_by_date[date]
+    prior_fetched_records = fetched_data_by_date[prior_date]
+    fetched_records.collect {|record|
+      prior_record = prior_fetched_records.find {|r| r.county == record.county}
+      DailyCountyRecord.from_fetched_records(record, date, prior_record)
     }
-  end
-  dated_data_by_county
+  end.flatten
 end
 
 data_dir = Pathname(ENV['DATA_DIR'] || "./data")
 
 fetched_data_by_date = Datastore.new(data_dir).load_all
-dated_data_by_county = index_data_by_county_then_date(fetched_data_by_date)
-File.open(data_dir + "summary.json", 'w') do |file|
-  file.puts JSON.pretty_generate(dated_data_by_county)
+File.open(data_dir + "table.json", 'w') do |file|
+  file.puts JSON.pretty_generate(build_table(fetched_data_by_date))
 end
