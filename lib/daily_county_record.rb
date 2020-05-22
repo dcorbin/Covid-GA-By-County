@@ -1,7 +1,7 @@
 require 'values'
 
-DailyCountyRecord = Value.new(:county, :date, :positives, :deaths, :hospitalizations, :positives_per_100k,
-                              :new_positives, :new_deaths, :new_hospitalizations)
+DailyCountyRecord = Value.new(:county, :date, :positive, :death, :hospitalization, :positives_per_100k,
+                              )
 
 class DailyCountyRecord
   def self.from_hash(h)

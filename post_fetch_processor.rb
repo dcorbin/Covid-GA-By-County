@@ -4,7 +4,7 @@ require 'date'
 require 'pathname'
 require 'daily_county_record'
 
-FetchedRecord = Value.new(:county, :positives, :deaths, :hospitalizations, :positives_per_100k)
+FetchedRecord = Value.new(:county, :positive, :death, :hospitalized, :positives_per_100k)
 class FetchedRecord
   def self.load_file(filename)
     File.open(filename, "r") do |file|
@@ -22,17 +22,14 @@ end
 
 
 class DailyCountyRecord
-  def self.from_fetched_records(fetched_record, date, prior_fetched_record)
+  def self.from_fetched_records(fetched_record, date)
     DailyCountyRecord.new(
         fetched_record.county,
         date,
-        fetched_record.positives,
-        fetched_record.deaths,
-        fetched_record.hospitalizations,
-        fetched_record.positives_per_100k,
-        fetched_record.positives - prior_fetched_record.positives,
-        fetched_record.deaths - prior_fetched_record.deaths,
-        fetched_record.hospitalizations - prior_fetched_record.hospitalizations)
+        fetched_record.positive,
+        fetched_record.death,
+        fetched_record.hospitalized,
+        fetched_record.positives_per_100k)
   end
 end
 
@@ -55,14 +52,10 @@ class Datastore
 end
 
 def build_table(fetched_data_by_date)
-
   fetched_data_by_date.keys.sort[1..-1].collect do |date|
-    prior_date = date - 1
     fetched_records = fetched_data_by_date[date]
-    prior_fetched_records = fetched_data_by_date[prior_date]
     fetched_records.collect {|record|
-      prior_record = prior_fetched_records.find {|r| r.county == record.county}
-      DailyCountyRecord.from_fetched_records(record, date, prior_record)
+      DailyCountyRecord.from_fetched_records(record, date)
     }
   end.flatten
 end
