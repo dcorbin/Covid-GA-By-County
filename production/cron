@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DATA_DIR=/home/covid/GA-data
+*/3 * * * * covid /home/covid/Covid-GA-By-County/production/run.sh 2>>/var/log/covid/stderr.log >>/var/log/covid/stdout.log
