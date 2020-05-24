@@ -1,6 +1,6 @@
 require 'values'
 
-DailyCountyRecord = Value.new(:county, :date, :positive, :death, :hospitalization, :positives_per_100k,
+DailyCountyRecord = Value.new(:county, :date, :positive, :death, :hospitalized, :positives_per_100k,
                               )
 
 class DailyCountyRecord
