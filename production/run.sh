@@ -10,4 +10,5 @@ cd "${DIR}"
 ruby fetch.rb
 ruby -I ./lib post_fetch_processor.rb
 cp "${DATA_DIR}"/table.json /var/www/covid/GA-By-County.json
+mail -s "covid.dcorbin.com - data fetch complete" dave@dcorbin.com </dev/null
 echo "Execution Complete" >&2
