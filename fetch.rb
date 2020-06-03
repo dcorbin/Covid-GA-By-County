@@ -30,11 +30,25 @@ class CountyDataFetcher
       URL + html_doc.css("script").last['src']
     end
 
+    $stderr.puts main_source_url
     json_data = @resource_fetcher.fetch(main_source_url) do |response|
-      response.body.split(/\n/).find{ |line|line =~ /function/}.
-          sub(/.*COUNTYCASES":/, '').sub(/\].*/, ']')
+      body = response.body
+      json_blocks = []
+      while body =~ /JSON.parse\('/
+        body = body.sub(/.*?JSON.parse\('/, '')
+        index = body.index("')")
+        break if index < 0
+        json = body[0..index-1]
+        json_blocks.push(json)
+        body = body[index..-1]
+      end
+      # json_blocks.each_with_index { |json, i|
+      #   File.open("hack/#{i}.json", "w") {|file|
+      #     file.puts(json)
+      #   }
+      # }
+      json_blocks[3]
     end
-
     JSON.parse(json_data)
   end
 end
