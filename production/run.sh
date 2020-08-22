@@ -1,6 +1,11 @@
 #!/bin/bash
-set -e
+set -eE
 set -x
+function emailError() {
+  mail -s "covid.dcorbin.com - ERROR fetching data" dave@dcorbin.com </dev/null
+  echo "Execution failed with error" >&2
+}
+trap emailError ERR
 eval "$(rbenv init -)"
 date >&2
 date
