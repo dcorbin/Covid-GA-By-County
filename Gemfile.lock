@@ -30,6 +30,7 @@ PLATFORMS
 DEPENDENCIES
   http-client
   nokogiri
+  rubyzip
   selenium-webdriver
   values
 

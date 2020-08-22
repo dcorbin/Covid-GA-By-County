@@ -59,7 +59,7 @@ end
 def build_table(fetched_data_by_date)
   fetched_data_by_date.keys.sort[1..-1].collect do |date|
     fetched_records = fetched_data_by_date[date]
-    fetched_records.collect {|record|
+    fetched_records.select{|record| record.county != nil}.collect {|record|
       DailyCountyRecord.from_fetched_records(record, date)
     }
   end.flatten

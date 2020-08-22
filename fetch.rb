@@ -3,6 +3,8 @@ require 'fileutils'
 require 'pathname'
 require 'nokogiri'
 require 'http-client'
+require 'zip'
+require 'csv'
 
 # URL = 'https://dph.georgia.gov/covid-19-daily-status-report'
 
@@ -18,38 +20,56 @@ class ResourceFetcher
   end
 end
 
+KNOWN_PROPERTIES = {
+    county_resident: proc {|v| v},
+    positive: proc {|v| v.to_i},
+    deaths: proc {|v| v.to_i},
+    hospitalization: proc {|v| v.to_i},
+    case_rate: proc {|v| v.to_f},
+}
+ZIP_URL = 'https://ga-covid19.ondemand.sas.com/docs/ga_covid_data.zip'
 class CountyDataFetcher
-  URL = 'https://ga-covid19.ondemand.sas.com'
-
   def initialize
     @resource_fetcher = ResourceFetcher.new
   end
   def fetch
-    main_source_url = @resource_fetcher.fetch(URL) do |response|
-      html_doc = Nokogiri::HTML(response.body)
-      URL + html_doc.css("script").last['src']
-    end
-
-    $stderr.puts main_source_url
-    json_data = @resource_fetcher.fetch(main_source_url) do |response|
-      body = response.body
-      json_blocks = []
-      while body =~ /JSON.parse\('/
-        body = body.sub(/.*?JSON.parse\('/, '')
-        index = body.index("')")
-        break if index < 0
-        json = body[0..index-1]
-        json_blocks.push(json)
-        body = body[index..-1]
+    data_rows = []
+    Dir.mktmpdir("covid-ga-download") do |temp_dir|
+      temp_dir = Pathname(temp_dir)
+      $stderr.puts "TempDir: #{temp_dir}"
+      zip_file_name = Pathname(temp_dir) + "GA-County.zip"
+      File.open(zip_file_name, "w") do |file|
+        @resource_fetcher.fetch(ZIP_URL) do |response|
+          file.write(response.body)
+        end
       end
-      # json_blocks.each_with_index { |json, i|
-      #   File.open("hack/#{i}.json", "w") {|file|
-      #     file.puts(json)
-      #   }
-      # }
-      json_blocks[3]
+      Zip::File.open(zip_file_name) do |zip_file|
+        zip_file.each do |entry|
+          if entry.name == 'countycases.csv'
+            case_file_name = temp_dir + "countycases.csv"
+            entry.extract(case_file_name)
+            headers = nil
+            CSV.foreach(case_file_name) do |row|
+              if headers
+                record = {}
+                row.each_with_index { |datum, index|
+                  property = headers[index]
+                  parser = KNOWN_PROPERTIES[property.to_sym]
+                  if parser.nil?
+                    raise("Unknown Property '#{property}'")
+                  end
+                  record[headers[index]] = parser.call(datum)
+                }
+                data_rows << record
+              else
+                headers = row.collect { |h| h.downcase }
+              end
+            end
+          end
+        end
+      end
     end
-    JSON.parse(json_data)
+    data_rows
   end
 end
 
