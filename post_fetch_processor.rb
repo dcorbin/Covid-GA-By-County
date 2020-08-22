@@ -10,18 +10,19 @@ class FetchedRecord
     File.open(filename, "r") do |file|
       JSON.parse(file.read).collect do |record|
         FetchedRecord.new(
-            FetchedRecord.value(record, 'county_resident'),
-            FetchedRecord.value(record, 'Positive').to_i,
-            FetchedRecord.value(record, 'DEATHS').to_i,
-            FetchedRecord.value(record, 'HOSPITALIZATION').to_i,
-            FetchedRecord.value(record, 'case_rate').to_f)
+            FetchedRecord.value(record, 'county_resident',:to_s),
+            FetchedRecord.value(record, 'Positive', :to_i),
+            FetchedRecord.value(record, 'DEATHS', :to_i),
+            FetchedRecord.value(record, 'HOSPITALIZATION', :to_i),
+            FetchedRecord.value(record, 'case_rate', :to_i))
       end
     end
   end
 
-  def self.value(record, name)
-    return record[name] if record.has_key?(name)
-    record[name.downcase]
+  def self.value(record, name, conversion_method)
+    value = record.has_key?(name)  ? record[name] : record[name.downcase]
+    return nil if value.nil?
+    value.send(conversion_method)
   end
 end
 
