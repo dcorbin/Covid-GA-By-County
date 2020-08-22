@@ -49,7 +49,11 @@ class CountyDataFetcher
       # }
       json_blocks[5]
     end
-    JSON.parse(json_data)
+    records = JSON.parse(json_data)
+    if records[0]['county_resident'].nil?
+      raise "Error scraping Data"
+    end
+    records
   end
 end
 
