@@ -2,7 +2,7 @@
 set -eE
 set -x
 function emailError() {
-  mail -s "covid.dcorbin.com - ERROR fetching data" dave@dcorbin.com </dev/null
+  date | mail -s "covid.dcorbin.com - ERROR fetching data" dave@dcorbin.com </dev/null
   echo "Execution failed with error" >&2
 }
 trap emailError ERR
@@ -15,5 +15,5 @@ cd "${DIR}"
 ruby fetch.rb
 ruby -I ./lib post_fetch_processor.rb
 cp "${DATA_DIR}"/table.json /var/www/covid/GA-By-County.json
-mail -s "covid.dcorbin.com - data fetch complete" dave@dcorbin.com </dev/null
+date | mail -s "covid.dcorbin.com - data fetch complete" dave@dcorbin.com </dev/null
 echo "Execution Complete" >&2
