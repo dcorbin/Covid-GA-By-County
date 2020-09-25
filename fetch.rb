@@ -47,7 +47,7 @@ class CountyDataFetcher
       #     file.puts(json)
       #   }
       # }
-      json_blocks[5]
+      json_blocks[6]
     end
     records = JSON.parse(json_data)
     if records[0]['county_resident'].nil?
